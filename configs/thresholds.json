@@ -1,0 +1,18 @@
+{
+  "real:face": {
+    "far": 0.0,
+    "frr": 0.0,
+    "n_genuine": 72,
+    "n_impostor": 60,
+    "policy": "far1",
+    "threshold": 0.6609792436229769
+  },
+  "real:object": {
+    "far": 0.0,
+    "frr": 0.09722222222222222,
+    "n_genuine": 72,
+    "n_impostor": 60,
+    "policy": "far1",
+    "threshold": 0.6588929784453703
+  }
+}

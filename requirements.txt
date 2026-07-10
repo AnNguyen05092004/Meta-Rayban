@@ -1,0 +1,26 @@
+# === Lõi CPM + test + thí nghiệm + UI (chạy được ngay, mọi nền tảng) ===
+numpy>=1.24
+pytest>=7
+matplotlib>=3.7      # biểu đồ thí nghiệm retention (WP5)
+gradio>=4            # UI demo (WP4)
+
+# === Perception + skills — model thật, chạy trên M4; bỏ comment khi cần ===
+# torch>=2.2                 # Apple Silicon: hỗ trợ MPS
+# insightface>=0.7.3         # ArcFace face embedding
+# onnxruntime>=1.17          # (Apple Silicon có thể dùng onnxruntime-silicon)
+# open_clip_torch>=2.24      # CLIP object embedding
+# opencv-python>=4.9,<5      # webcam / đọc ảnh (PIN <5: opencv 5.x kéo numpy>=2 -> xung đột facenet/torch)
+# pillow>=10
+# ultralytics>=8.3           # YOLO cho skill obstacle (vật cản)
+# vietocr>=0.3               # OCR tiếng Việt (hoặc dùng VLM)
+# VLM cho skill scene/VQA: dùng SDK nhà cung cấp bạn chọn (Gemini/GPT-4o/Claude) hoặc VLM on-device
+
+# === Giọng nói (WP6, stretch) ===
+# (STT) whisper.cpp / faster-whisper / PhoWhisper
+# (TTS) piper-tts
+
+# === Optional Task 4 providers ===
+# easyocr>=1.7
+# google-generativeai>=0.8
+
+# Gợi ý: dùng Python 3.11/3.12 cho stack perception đầy đủ (một số wheel chưa có cho 3.14).

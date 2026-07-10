@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+.venv312/
+venv/
+.pytest_cache/
+tmp_pytest*/
+.DS_Store
+
+# artifacts
+*.pkl
+*.onnx
+models/
+data/
+snapshots/
+runs/

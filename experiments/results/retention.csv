@@ -1,0 +1,101 @@
+n_ids,method,overall_acc,first_id_acc
+1,CPM (NL),1.0000,1.0000
+2,CPM (NL),1.0000,1.0000
+3,CPM (NL),1.0000,1.0000
+4,CPM (NL),1.0000,1.0000
+5,CPM (NL),1.0000,1.0000
+6,CPM (NL),1.0000,1.0000
+7,CPM (NL),1.0000,1.0000
+8,CPM (NL),1.0000,1.0000
+9,CPM (NL),1.0000,1.0000
+10,CPM (NL),1.0000,1.0000
+11,CPM (NL),1.0000,1.0000
+12,CPM (NL),1.0000,1.0000
+13,CPM (NL),1.0000,1.0000
+14,CPM (NL),1.0000,1.0000
+15,CPM (NL),1.0000,1.0000
+16,CPM (NL),1.0000,1.0000
+17,CPM (NL),1.0000,1.0000
+18,CPM (NL),1.0000,1.0000
+19,CPM (NL),1.0000,1.0000
+20,CPM (NL),1.0000,1.0000
+1,NCM (nearest mean),1.0000,1.0000
+2,NCM (nearest mean),1.0000,1.0000
+3,NCM (nearest mean),1.0000,1.0000
+4,NCM (nearest mean),1.0000,1.0000
+5,NCM (nearest mean),1.0000,1.0000
+6,NCM (nearest mean),1.0000,1.0000
+7,NCM (nearest mean),1.0000,1.0000
+8,NCM (nearest mean),1.0000,1.0000
+9,NCM (nearest mean),1.0000,1.0000
+10,NCM (nearest mean),1.0000,1.0000
+11,NCM (nearest mean),1.0000,1.0000
+12,NCM (nearest mean),1.0000,1.0000
+13,NCM (nearest mean),1.0000,1.0000
+14,NCM (nearest mean),1.0000,1.0000
+15,NCM (nearest mean),1.0000,1.0000
+16,NCM (nearest mean),1.0000,1.0000
+17,NCM (nearest mean),1.0000,1.0000
+18,NCM (nearest mean),1.0000,1.0000
+19,NCM (nearest mean),1.0000,1.0000
+20,NCM (nearest mean),1.0000,1.0000
+1,kNN (vector-DB),1.0000,1.0000
+2,kNN (vector-DB),1.0000,1.0000
+3,kNN (vector-DB),1.0000,1.0000
+4,kNN (vector-DB),1.0000,1.0000
+5,kNN (vector-DB),1.0000,1.0000
+6,kNN (vector-DB),1.0000,1.0000
+7,kNN (vector-DB),1.0000,1.0000
+8,kNN (vector-DB),1.0000,1.0000
+9,kNN (vector-DB),1.0000,1.0000
+10,kNN (vector-DB),1.0000,1.0000
+11,kNN (vector-DB),1.0000,1.0000
+12,kNN (vector-DB),1.0000,1.0000
+13,kNN (vector-DB),1.0000,1.0000
+14,kNN (vector-DB),1.0000,1.0000
+15,kNN (vector-DB),1.0000,1.0000
+16,kNN (vector-DB),1.0000,1.0000
+17,kNN (vector-DB),1.0000,1.0000
+18,kNN (vector-DB),1.0000,1.0000
+19,kNN (vector-DB),1.0000,1.0000
+20,kNN (vector-DB),1.0000,1.0000
+1,EWC (fine-tune+Fisher),1.0000,1.0000
+2,EWC (fine-tune+Fisher),1.0000,1.0000
+3,EWC (fine-tune+Fisher),1.0000,1.0000
+4,EWC (fine-tune+Fisher),1.0000,1.0000
+5,EWC (fine-tune+Fisher),1.0000,1.0000
+6,EWC (fine-tune+Fisher),1.0000,1.0000
+7,EWC (fine-tune+Fisher),1.0000,1.0000
+8,EWC (fine-tune+Fisher),1.0000,1.0000
+9,EWC (fine-tune+Fisher),1.0000,1.0000
+10,EWC (fine-tune+Fisher),1.0000,1.0000
+11,EWC (fine-tune+Fisher),1.0000,1.0000
+12,EWC (fine-tune+Fisher),1.0000,1.0000
+13,EWC (fine-tune+Fisher),1.0000,1.0000
+14,EWC (fine-tune+Fisher),1.0000,1.0000
+15,EWC (fine-tune+Fisher),1.0000,1.0000
+16,EWC (fine-tune+Fisher),1.0000,1.0000
+17,EWC (fine-tune+Fisher),1.0000,1.0000
+18,EWC (fine-tune+Fisher),1.0000,1.0000
+19,EWC (fine-tune+Fisher),1.0000,1.0000
+20,EWC (fine-tune+Fisher),1.0000,1.0000
+1,Fine-tune head,1.0000,1.0000
+2,Fine-tune head,1.0000,1.0000
+3,Fine-tune head,1.0000,1.0000
+4,Fine-tune head,1.0000,1.0000
+5,Fine-tune head,1.0000,1.0000
+6,Fine-tune head,1.0000,1.0000
+7,Fine-tune head,1.0000,1.0000
+8,Fine-tune head,1.0000,1.0000
+9,Fine-tune head,1.0000,1.0000
+10,Fine-tune head,1.0000,1.0000
+11,Fine-tune head,1.0000,1.0000
+12,Fine-tune head,1.0000,1.0000
+13,Fine-tune head,1.0000,1.0000
+14,Fine-tune head,1.0000,1.0000
+15,Fine-tune head,1.0000,1.0000
+16,Fine-tune head,1.0000,1.0000
+17,Fine-tune head,1.0000,1.0000
+18,Fine-tune head,1.0000,1.0000
+19,Fine-tune head,1.0000,1.0000
+20,Fine-tune head,1.0000,1.0000
