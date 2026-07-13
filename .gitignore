@@ -11,6 +11,12 @@ tmp_pytest*/
 *.pkl
 *.onnx
 models/
-data/
 snapshots/
 runs/
+
+# Data: bỏ qua dataset lớn (tự tải), NHƯNG giữ lại các subset nhỏ để clone chạy liền
+data/*
+!data/faces_lfw_12x20/
+!data/objects_caltech_subset/
+!data/faces_lfw_subset/
+!data/objects_lfw_subset/
