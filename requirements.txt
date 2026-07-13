@@ -19,8 +19,10 @@ gradio>=4            # UI demo (WP4)
 # (STT) whisper.cpp / faster-whisper / PhoWhisper
 # (TTS) piper-tts
 
-# === Optional Task 4 providers ===
-# easyocr>=1.7
-# google-generativeai>=0.8
+# === Optional Task 4 providers (OCR + VLM) ===
+# openai>=1.0            # GPT-4o / gpt-4o-mini cho CẢ scene/VQA + OCR (1 key, không cần cài EasyOCR)
+# pillow>=10             # encode ảnh -> base64 cho OpenAI vision (thường đã có sẵn theo torchvision)
+# easyocr>=1.7           # OCR offline (thay thế nếu không muốn gọi cloud)
+# google-generativeai>=0.8   # Gemini free tier (thay thế OpenAI)
 
 # Gợi ý: dùng Python 3.11/3.12 cho stack perception đầy đủ (một số wheel chưa có cho 3.14).

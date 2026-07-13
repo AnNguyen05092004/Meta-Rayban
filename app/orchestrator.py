@@ -17,6 +17,7 @@ Real optional skills:
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 
 for _s in (sys.stdout, sys.stderr):
@@ -65,19 +66,61 @@ class VisionAssistant:
 
         scene = StubScene()
         ocr = StubOCR()
-        try:
-            from skills.providers import gemini_vlm
 
-            scene = RealScene(vlm=gemini_vlm())
-        except Exception as exc:
-            print(f"[skills] Không bật được VLM thật, dùng StubScene: {exc}", file=sys.stderr)
+        # --- VLM cho scene/VQA: OpenAI -> Gemini -> Stub ---
+        vlm = VisionAssistant._select_vlm()
+        if vlm is not None:
+            scene = RealScene(vlm=vlm[0])
+            print(f"[skills] Scene/VQA: dùng VLM {vlm[1]}.", file=sys.stderr)
+        else:
+            print("[skills] Không có VLM thật (thiếu key hoặc chưa cài SDK) → dùng StubScene.", file=sys.stderr)
+
+        # --- OCR: OpenAI vision -> EasyOCR -> Stub ---
+        ocr_fn = VisionAssistant._select_ocr()
+        if ocr_fn is not None:
+            ocr = RealOCR(ocr_fn=ocr_fn[0])
+            print(f"[skills] OCR: dùng {ocr_fn[1]}.", file=sys.stderr)
+        else:
+            print("[skills] Không có OCR thật (OpenAI/EasyOCR) → dùng StubOCR.", file=sys.stderr)
+
+        return scene, ocr
+
+    @staticmethod
+    def _select_vlm():
+        """Chọn VLM theo thứ tự ưu tiên: OpenAI -> Gemini. Trả (callable, tên) hoặc None."""
+        if os.environ.get("OPENAI_API_KEY"):
+            try:
+                from skills.providers import openai_vlm
+
+                return openai_vlm(), "OpenAI (gpt-4o-mini)"
+            except Exception as exc:
+                print(f"[skills] OpenAI VLM lỗi: {exc}", file=sys.stderr)
+        if os.environ.get("GEMINI_API_KEY"):
+            try:
+                from skills.providers import gemini_vlm
+
+                return gemini_vlm(), "Gemini (gemini-1.5-flash)"
+            except Exception as exc:
+                print(f"[skills] Gemini VLM lỗi: {exc}", file=sys.stderr)
+        return None
+
+    @staticmethod
+    def _select_ocr():
+        """Chọn OCR theo thứ tự: OpenAI vision -> EasyOCR. Trả (callable, tên) hoặc None."""
+        if os.environ.get("OPENAI_API_KEY"):
+            try:
+                from skills.providers import openai_ocr
+
+                return openai_ocr(), "OpenAI vision (gpt-4o-mini)"
+            except Exception as exc:
+                print(f"[skills] OpenAI OCR lỗi: {exc}", file=sys.stderr)
         try:
             from skills.providers import easyocr_fn
 
-            ocr = RealOCR(ocr_fn=easyocr_fn())
+            return easyocr_fn(), "EasyOCR"
         except Exception as exc:
-            print(f"[skills] Không bật được OCR thật, dùng StubOCR: {exc}", file=sys.stderr)
-        return scene, ocr
+            print(f"[skills] EasyOCR lỗi: {exc}", file=sys.stderr)
+        return None
 
     def _modality(self, query: str) -> str:
         low = query.lower()

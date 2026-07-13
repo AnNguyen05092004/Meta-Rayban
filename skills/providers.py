@@ -69,12 +69,105 @@ def gemini_vlm(model: str = "gemini-1.5-flash", api_key: str | None = None) -> C
     return run
 
 
+def _encode_image_data_url(frame, fmt: str = "PNG") -> str:
+    """RGB array -> data URL base64 (PNG/JPEG) cho OpenAI vision."""
+    import base64
+    import io
+
+    try:
+        from PIL import Image
+    except Exception as exc:  # pragma: no cover - optional dependency
+        raise RuntimeError("Chua cai Pillow. Cai bang: pip install pillow") from exc
+
+    arr = _as_rgb_array(frame)
+    buf = io.BytesIO()
+    Image.fromarray(arr).save(buf, format=fmt)
+    b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+    mime = "image/png" if fmt.upper() == "PNG" else "image/jpeg"
+    return f"data:{mime};base64,{b64}"
+
+
+def _openai_client(api_key: str | None = None, client=None):
+    """Tao (hoac nhan) OpenAI client. `client` cho phep tiem gia lap khi test."""
+    if client is not None:
+        return client
+    key = api_key or os.environ.get("OPENAI_API_KEY")
+    if not key:
+        raise RuntimeError("Thieu OPENAI_API_KEY trong bien moi truong.")
+    try:
+        from openai import OpenAI
+    except Exception as exc:  # pragma: no cover - optional dependency
+        raise RuntimeError("Chua cai openai SDK. Cai bang: pip install openai pillow") from exc
+    return OpenAI(api_key=key)
+
+
+def _openai_vision(client, model: str, prompt: str, frame, max_tokens: int) -> str:
+    """Goi 1 luot chat.completions co kem anh, tra ve text."""
+    data_url = _encode_image_data_url(frame)
+    resp = client.chat.completions.create(
+        model=model,
+        max_tokens=max_tokens,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {"type": "image_url", "image_url": {"url": data_url}},
+                ],
+            }
+        ],
+    )
+    return (resp.choices[0].message.content or "").strip()
+
+
+def openai_vlm(
+    model: str = "gpt-4o-mini",
+    api_key: str | None = None,
+    max_tokens: int = 400,
+    client=None,
+) -> Callable:
+    """VLM (scene/VQA) dung OpenAI GPT-4o. Tra callable(frame_rgb, prompt) -> text."""
+    cli = _openai_client(api_key, client)
+
+    def run(frame_rgb, prompt: str) -> str:
+        return _openai_vision(cli, model, prompt, frame_rgb, max_tokens)
+
+    return run
+
+
+_OPENAI_OCR_PROMPT = (
+    "Trich xuat CHINH XAC toan bo van ban xuat hien trong anh, giu nguyen thu tu doc va dau "
+    "tieng Viet. Chi tra ve phan chu, khong mo ta, khong giai thich. Neu khong co chu, tra ve chuoi rong."
+)
+
+
+def openai_ocr(
+    model: str = "gpt-4o-mini",
+    api_key: str | None = None,
+    max_tokens: int = 800,
+    client=None,
+) -> Callable:
+    """OCR dung OpenAI GPT-4o vision (khong can cai EasyOCR). Tra callable(frame_rgb) -> text."""
+    cli = _openai_client(api_key, client)
+
+    def run(frame_rgb) -> str:
+        return _openai_vision(cli, model, _OPENAI_OCR_PROMPT, frame_rgb, max_tokens)
+
+    return run
+
+
 def moondream_vlm() -> Callable:
     """Placeholder for a local/offline VLM provider."""
     raise RuntimeError(
         "Moondream provider chua duoc cai dat trong repo nay. "
-        "Co the them sau bang transformers/moondream hoac dung Gemini cho MVP."
+        "Co the them sau bang transformers/moondream hoac dung Gemini/OpenAI cho MVP."
     )
 
 
-__all__ = ["easyocr_fn", "gemini_vlm", "moondream_vlm"]
+__all__ = [
+    "easyocr_fn",
+    "gemini_vlm",
+    "openai_vlm",
+    "openai_ocr",
+    "moondream_vlm",
+]
