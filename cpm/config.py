@@ -11,6 +11,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 
+# Cấu hình của MỘT tầng trí nhớ.
+# tiers fast/medium/slow = 3 tầng trí nhớ cập nhật ở tốc độ khác nhau (Continuum Memory System
+# của Nested Learning). Chỉ dùng khi bật ma trận liên kết (thành phần tuỳ chọn).
 @dataclass
 class TierConfig:
     """Cấu hình một tầng bộ nhớ (Continuum Memory System)."""
@@ -21,10 +24,13 @@ class TierConfig:
     weight: float  # trọng số khi tổng hợp recall giữa các tầng
 
 
+# Đây là bảng "núm vặn" của CPM: gom mọi tham số điều chỉnh vào một chỗ.
+# modality = loại đối tượng (face/object) — mỗi loại tạo một CPMConfig riêng.
 @dataclass
 class CPMConfig:
     """Cấu hình CPM cho một modality."""
 
+    # dim = số chiều của dấu vân tay số (embedding) — dãy 512 số đặc trưng cho ảnh.
     dim: int = 512
 
     # 3 tầng theo tần số: fast (thích nghi nhanh, quên nhanh) -> slow (bền, chống quên)
@@ -57,6 +63,8 @@ class CPMConfig:
     ema_alpha: float = 0.35       # retention của EMA; thấp hơn = bám mẫu mới nhanh hơn
     ema_weight: float = 0.65      # score = (1-w)*proto_slow + w*proto_ema
 
+    # Tìm cấu hình của một tầng theo tên ("fast"/"medium"/"slow").
+    # Vào: tên tầng. Ra: TierConfig tương ứng; không tìm thấy thì báo lỗi KeyError.
     def tier(self, name: str) -> TierConfig:
         for t in self.tiers:
             if t.name == name:

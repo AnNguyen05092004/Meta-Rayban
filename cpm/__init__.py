@@ -10,6 +10,7 @@ from .thresholds import (
     threshold_key,
 )
 
+# __all__ = danh sách tên được xuất ra khi "from cpm import *" — tức "cửa vào" công khai của gói cpm.
 __all__ = [
     "CPMConfig",
     "TierConfig",
