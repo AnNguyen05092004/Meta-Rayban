@@ -2,6 +2,7 @@
 
 from .config import CPMConfig, TierConfig
 from .memory import ContinualPersonalizationMemory, LabelRegistry, TierMemory
+from .local_store import LocalMemoryStore
 from .thresholds import (
     DEFAULT_THRESHOLDS_PATH,
     load_thresholds,
@@ -17,6 +18,7 @@ __all__ = [
     "ContinualPersonalizationMemory",
     "LabelRegistry",
     "TierMemory",
+    "LocalMemoryStore",
     "DEFAULT_THRESHOLDS_PATH",
     "load_thresholds",
     "save_thresholds",

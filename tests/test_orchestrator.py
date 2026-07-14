@@ -33,12 +33,21 @@ def test_ocr_routing():
     assert "chữ đọc được" in r.lower()
 
 
-def test_safety_override_prepends_warning():
+def test_safety_override_blocks_scene_skill():
     a = new()
     a.obstacle.set_distance(0.8)  # nguy hiểm
     r = a.handle("Trước mặt có gì?")
-    assert r.startswith("Cảnh báo")           # SAFETY chen lên đầu
-    assert "phía trước là" in r.lower()       # vẫn kèm câu trả lời gốc
+    assert r.startswith("Cảnh báo")
+    assert "phía trước là" not in r.lower()
+
+
+def test_safety_override_blocks_teach_and_recognition():
+    a = new()
+    a.obstacle.set_distance(0.8)
+
+    assert "Cảnh báo" in a.handle("Hãy nhớ đây là Lan", frame="p_lan")
+    assert a.core.cpm["face"].labels() == []
+    assert "Cảnh báo" in a.handle("Ai đây?", frame="p_lan")
 
 
 def test_obstacle_query():

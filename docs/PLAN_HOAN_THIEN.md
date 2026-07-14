@@ -13,21 +13,23 @@
 | 1 | Trọng tâm 3–4 tuần tới | **Vòng lặp giọng nói (WS-A)** | Bắt đầu bằng luồng nói–nghe trên laptop/M4 |
 | 2 | Dạng demo lúc bảo vệ | **BẮT BUỘC kính Meta Ray-Ban** | Kéo WS-E (app hub) + WS-C (backend) + WS-F (kính) vào **đường găng**; SDK kính thành rủi ro số 1 phải kiểm chứng SỚM |
 | 3 | Deadline | **Chỉ có mốc cuối ~T12/2026** | Đủ thời gian làm đầy đủ; vẫn cần de-risk sớm |
-| 4 | Đã verify gì trên máy thật | **Mới có MacBook M4** (chưa chạy ArcFace/CLIP trên ảnh nhóm, chưa chạy OCR/VLM bằng key OpenAI) | 3 việc "nghiệm thu thật" đưa vào Sprint 1 |
+| 4 | Đã verify gì trên máy thật | MacBook M4 đã smoke ArcFace/CLIP, OpenAI VLM/OCR, camera stream và YOLO+Depth; **chưa** có bảng nghiệm thu ảnh nhóm, safety cảnh thật dài hạn hay test kính | Các checklist hardware còn mở trong Sprint 1-2 |
 
 ---
 
 ## 1. Trạng thái hiện tại (đã đối chiếu code)
 
-**Xong & có test (35/35 pass):**
+**Xong & có test tự động (58 pass):**
 - Lõi **CPM v2**: prototype backbone + delta-rule/associative (tuỳ chọn) + EMA drift + 3 tầng + cô lập theo `user_id` + novelty gate + calibrate ngưỡng + snapshot/load.
-- **Orchestrator**: định tuyến intent tiếng Việt (dạy/sửa/hỏi) + SAFETY override + sửa mojibake.
+- **Orchestrator**: định tuyến intent tiếng Việt (dạy/sửa/hỏi) + safety gate chặn CPM/nhận diện/VLM/OCR khi có nguy hiểm + sửa mojibake.
 - **Perception ảnh**: face=ArcFace, object=OpenCLIP; VLM scene/VQA + OCR (OpenAI/Gemini/EasyOCR) — có bản Real, thiếu key thì fallback Stub.
+- **Voice local**: faster-whisper, WebRTC VAD, TTS macOS, xác nhận trước teach/fix, log JSONL; UI và terminal dùng cùng CPM local theo `user_id`.
+- **Camera/safety**: `CameraStream` nền, `RealObstacle` (YOLO11n + Depth Anything V2 relative), `SafetyMonitor` rate-limit và ưu tiên TTS cảnh báo.
 - **Thực nghiệm**: retention, ablation, drift, calibration, real_lfw + baselines (CPM/NCM/kNN/EWC/fine-tune). Diễn giải trung thực trong [KET_QUA_THI_NGHIEM.md](KET_QUA_THI_NGHIEM.md).
 
-**Chưa có / mới là khung:**
-- ❌ Giọng nói (STT/TTS/wake-word) · ❌ App điện thoại · ❌ Backend/sync/multi-user server
-- 🟡 Vật cản `RealObstacle.check()` còn `NotImplementedError` (chỉ Stub chạy) · ❌ On-device/offline packaging · ❌ Tích hợp kính · ❌ User study
+**Chưa có / chưa nghiệm thu đủ:**
+- ❌ Wake-word/press-and-hold native · ❌ App điện thoại · ❌ Backend/sync/multi-user server.
+- 🟡 Safety chỉ trả **gần/rất gần**, chưa hiệu chuẩn mét và chưa đo false negative ở cảnh thật · ❌ On-device/offline packaging · ❌ Tích hợp kính · ❌ User study.
 
 **Định vị đóng góp (giữ nguyên, trung thực):** đóng góp KHÔNG phải "độ chính xác nhận diện" (trên embedding tốt thì NCM/kNN cũng ~1.0) mà là **hệ thống bộ nhớ cá nhân hoá LIÊN TỤC** (dạy/sửa 1-shot online, bộ nhớ bị chặn, đa người dùng, novelty gate) + **triển khai edge-cloud đa tần số** + **ứng dụng NL vào assistive tech**. Nơi CPM kỳ vọng vượt NCM = **appearance drift** (tầng nhanh thích nghi, tầng chậm giữ gốc).
 
@@ -74,25 +76,25 @@ Ký hiệu owner: **A** = TV-A (mobile/voice/on-device/kính) · **B** = TV-B (p
 
 ### 🏁 Sprint 1 (nay → ~đầu T8) — Voice slice + de-risk kính + nghiệm thu model thật
 **Mục tiêu:** nói–nghe chạy trên M4; biết chắc SDK kính dùng được không; số liệu chạy trên dữ liệu nhóm.
-- [ ] **A** STT tiếng Việt: tích hợp `faster-whisper`/`whisper.cpp` (hoặc PhoWhisper) → `transcribe(audio)->text` (đặt `perception/audio.py` hoặc thêm vào `skills/providers.py`)
-- [ ] **A** TTS tiếng Việt: Piper (offline) hoặc gTTS (online nhanh) → `speak(text)`
-- [ ] **A** `scripts/voice_loop.py`: mic → STT → `VisionAssistant.handle()` → TTS → loa (space-to-talk trước, wake-word sau)
+- [x] **A** STT tiếng Việt: `faster-whisper` → `transcribe(audio)->text` (`skills.providers.faster_whisper_stt`); model thật cần tải/nghiệm thu theo `docs/SPRINT_1_NGHIEM_THU.md`
+- [x] **A** TTS: macOS `say` mặc định; Piper offline/gTTS online là backend tuỳ chọn → `speak_text(text)`
+- [x] **A** Voice slice: `scripts/voice_loop.py` và UI dùng chung CPM local theo `user_id`; WebRTC VAD, state machine xác nhận trước teach/fix, JSONL nghiệm thu và TTS safety-priority. Wake-word/press-and-hold native để sau khi test trên phone/kính.
 - [ ] **A+B+C** ⚠️ **Kiểm chứng SDK kính** (mục §2) → **CỔNG QUYẾT ĐỊNH**: đi tiếp kính hay bật fallback
-- [ ] **B** Nghiệm thu OCR/VLM THẬT: `pip install openai pillow`, set `OPENAI_API_KEY`, chạy `python -m scripts.try_vlm --image <ảnh> --query "Trước mặt có gì?"` và "Đọc chữ giúp tôi"
+- [x] **B** Nghiệm thu OCR/VLM THẬT: `pip install openai pillow`, set `OPENAI_API_KEY`, chạy `python -m scripts.try_vlm --image <ảnh> --query "Trước mặt có gì?"` và "Đọc chữ giúp tôi"
 - [ ] **C** Chạy ArcFace/CLIP trên **ảnh của nhóm** trên M4 (dùng `scripts/capture_faces.py` + `experiments/real_data.py`) → xác nhận số liệu trên dữ liệu cá nhân
-- [ ] **A** Thêm nút **"Mô tả cảnh"/"Đọc chữ"** vào [app/demo_gradio.py](../app/demo_gradio.py) (hiện chỉ teach/ask/fix)
-- [ ] **A/B** **Xử lý lỗi thực tế** khi ghép real embedder: KHÔNG phát hiện mặt/vật (`RealEmbedder.embed_face` **raise `ValueError`**), khung mờ, người dùng im lặng → trả lời nhẹ nhàng ("chưa thấy rõ, thử lại nhé") thay vì sập chương trình
+- [x] **A** Thêm nút **"Mô tả cảnh"/"Đọc chữ"** vào [app/demo_gradio.py](../app/demo_gradio.py); cần nghiệm thu bằng key/ảnh thật theo checklist Sprint 1
+- [x] **A/B** **Xử lý lỗi thực tế** khi ghép real embedder: không phát hiện mặt/frame lỗi và im lặng được trả lời nhẹ nhàng, không sập chương trình; cần test phần cứng thực theo checklist
 - **Xong khi:** nói "trước mặt có gì?" trên M4 → nghe mô tả tiếng Việt (**vòng lặp < ~3–5s online**); có kết luận SDK kính; có 1 bảng số trên ảnh nhóm.
 
 ### Sprint 2 (~T8 nửa đầu) — Vật cản thật + dữ liệu cá nhân
-- [ ] **B** Hiện thực [skills/obstacle.py](../skills/obstacle.py) `RealObstacle.check()`: YOLOv11n → boxes; Depth Anything v2 small → depth; vật gần nhất vùng giữa khung
+- [x] **B** Hiện thực [skills/obstacle.py](../skills/obstacle.py) `RealObstacle.check()`: YOLOv11n → boxes; Depth Anything v2 small → depth tương đối; chọn vật gần nhất vùng giữa khung. Đã smoke model thật trên M4/MPS; còn nghiệm thu webcam/cảnh thật theo `SPRINT_2_NGHIEM_THU.md`.
 - [ ] **B** Hiệu chỉnh depth→mét (vật biết kích thước / homography sàn); đo độ trễ (mục tiêu <300ms)
   - ⚠️ **Rủi ro:** Depth Anything cho **depth TƯƠNG ĐỐI**, không phải mét tuyệt đối. Dùng checkpoint **Metric** (indoor) nhưng vẫn sai số lớn theo cảnh. **Fallback an toàn:** cảnh báo theo mức "**gần / rất gần**" (ngưỡng trên depth tương đối + kích thước bbox) thay vì hứa đo mét chính xác — ưu tiên "không bỏ sót vật cản" hơn là con số đẹp.
-- [ ] **A/B** **Vòng lặp camera liên tục** (thay "chụp 1 khung" `grab_webcam_bgr`): capture stream + safety monitor chạy nền mỗi N khung → nền cho vật cản real-time (khắc phục mục "Camera stream 🟡")
-- [ ] **B** Nối RealObstacle vào safety-override (giữ Stub cho test); thêm test kịch bản gần/xa
+- [x] **A/B** **Vòng lặp camera liên tục** (thay "chụp 1 khung" `grab_webcam_bgr`): `CameraStream` + `SafetyMonitor` chạy nền mỗi 0.75s mặc định; có `scripts.safety_monitor` để nghiệm thu webcam.
+- [x] **B** Nối RealObstacle vào safety-override (giữ Stub cho test); thêm test kịch bản gần/xa, hành lang giữa và rate-limit cảnh báo. Còn test phần cứng theo checklist Sprint 2.
 - [ ] **C** Recalibrate ngưỡng trên **data cá nhân** (`configs/thresholds.json` đang là số LFW/Caltech): `python -m scripts.calibrate_threshold --data_dir data/faces --modality face --impostor_split 3` (+ object)
 - [ ] **A** Wake-word đơn giản (openWakeWord) thay space-to-talk
-- **Xong khi:** camera thật → cảnh báo "vật cản ~1m" real-time; ngưỡng nhận diện là số của nhóm.
+- **Xong khi:** camera thật → cảnh báo "vật cản gần/rất gần" real-time; ngưỡng nhận diện là số của nhóm.
 
 ### Sprint 3 (~T8 nửa sau) — Khung app điện thoại + khung backend
 - [ ] **A** Flutter skeleton: camera stream + thu/phát âm + kết nối WebSocket (chọn Android/iOS — xem §6 câu hỏi mở)
@@ -103,8 +105,9 @@ Ký hiệu owner: **A** = TV-A (mobile/voice/on-device/kính) · **B** = TV-B (p
 ### Sprint 4 (~T9 nửa đầu) — CPM per-user trên backend + UX giọng nói trên phone
 - [ ] **C** Bổ sung `export_delta()` / `import_adapter()` cho CPM (plan §5.5 — hiện mới có snapshot/load)
   - ⚠️ **Sửa:** `snapshot/load` hiện dùng **pickle** — cho backend nhận dữ liệu client là **rủi ro bảo mật (thực thi code tuỳ ý)** + giòn theo phiên bản. Đổi sang **npz (mảng) + JSON (metadata)** hoặc safetensors cho phần export/sync.
+- [x] **C (làm sớm, local pilot)** `cpm.LocalMemoryStore`: JSON + NPZ, kiểm tra schema/mảng, restore theo `user_id` và tự lưu khi dạy/sửa. Chưa thay thế store per-user SQLite/backend của Sprint 4.
 - [ ] **B** Memory store per-user: SQLite metadata + snapshot theo `user_id`
-- [ ] **A** App: UX giọng nói hoàn chỉnh (wake-word, ngắt lời, đọc trả lời); thao tác không cần nhìn màn hình
+- [ ] **A** App: UX giọng nói trên phone/kính hoàn chỉnh (wake-word đã kiểm thử, press-and-hold native, ngắt lời, đọc trả lời); thao tác không cần nhìn màn hình
 - **Xong khi:** 2 user khác nhau đăng nhập → mỗi người bộ nhớ riêng, không rò.
 
 ### Sprint 5 (~T9 nửa sau) — Sync edge-cloud + on-device offline
@@ -228,16 +231,17 @@ Viết (C)     ·    ·    ·    ·    ▓    ▓    ▓    ▓   ██
 
 Sau khi đọc lại code thật (cpm/memory.py, config.py, app/cli.py, skills/*, requirements.txt, configs/thresholds.json):
 
-**Đã xác nhận plan mô tả ĐÚNG:** CPM v2 (prototype backbone + delta-rule/associative/EMA tắt mặc định + per-user `user_id` + `consolidate()` chỉ tác dụng khi bật ma trận + KHÔNG có `export_delta/import_adapter`); obstacle chỉ Stub; orchestrator safety đọc từ Stub; `thresholds.json` = số LFW/Caltech (far1: face 0.661, object 0.659) cần recalibrate; Real scene/OCR tiêm callable + fallback Stub. 35/35 test pass.
+**Đã xác nhận trạng thái hiện tại:** CPM v2 (prototype backbone + delta-rule/associative/EMA tắt mặc định + per-user `user_id` + `consolidate()` chỉ tác dụng khi bật ma trận + KHÔNG có `export_delta/import_adapter`); `RealObstacle` đã dùng YOLO11n + Depth Anything relative; orchestrator dùng safety gate thật để chặn CPM/nhận diện/VLM/OCR khi nguy hiểm; `thresholds.json` vẫn là số LFW/Caltech (far1: face 0.661, object 0.659) cần recalibrate trên dữ liệu nhóm; Real scene/OCR tiêm callable + fallback Stub. 58 test tự động pass.
 
 **Đã vá vào plan (mục tương ứng ở trên):**
 - Depth→mét là **tương đối, không tuyệt đối** → thêm fallback "gần/rất gần" (WS-B).
 - `snapshot/load` dùng **pickle** → đổi serialization an toàn cho backend/sync (WS-C).
 - Ghép real embedder dễ **sập khi không thấy mặt/vật** → thêm task xử lý lỗi (WS-A).
 - Thêm **ngân sách độ trễ voice loop < ~3–5s** (WS-A).
+- Đã thêm **camera stream liên tục + safety monitor**: `perception.capture.CameraStream` giữ webcam mở và cập nhật frame mới nhất trong thread nền; `RealObstacle.check()`/`SafetyMonitor` đã nối vào `scripts.safety_monitor` và voice loop. Còn lại là nghiệm thu cảnh thật C0-C5.
 
 **Cần bổ sung khi tới sprint tương ứng (chưa phải task cứng bây giờ):**
-- [ ] **Phụ thuộc:** `requirements.txt` hiện mới liệt kê `ultralytics`; khi làm WS-B cần thêm **model depth** (Depth Anything), khi làm WS-A cần **STT/TTS** (đang để mục "stretch"). Bỏ comment đúng lúc, tránh cài thừa.
+- [x] **Phụ thuộc:** `requirements.txt` đã liệt kê dependency bắt buộc cho real embedder, camera/safety và voice; model weights vẫn lazy-download/cache ở lần chạy đầu.
 - [ ] **Đạo đức/đồng thuận (TRƯỚC user study, Sprint 8):** phiếu đồng thuận, quy tắc xử lý ảnh khuôn mặt (ưu tiên on-device, mã hoá, cho xoá) — plan gốc §7.3 có nguyên tắc, cần biến thành checklist cụ thể trước khi mời người thật.
 - [ ] **Duy trì CI test xanh** xuyên suốt (repo đã là git); mỗi WS xong phải giữ pytest pass.
 

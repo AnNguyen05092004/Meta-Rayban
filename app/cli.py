@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
 # Đảm bảo in được tiếng Việt trên mọi console (Windows cp1252 -> UTF-8)
 for _stream in (sys.stdout, sys.stderr):
@@ -33,6 +34,7 @@ for _stream in (sys.stdout, sys.stderr):
 from cpm import (
     CPMConfig,
     ContinualPersonalizationMemory,
+    LocalMemoryStore,
     load_thresholds,
     resolve_threshold,
     threshold_key,
@@ -51,7 +53,12 @@ class Assistant:
     # Hàm khởi tạo: dựng sẵn "đôi mắt" và "trí nhớ" khi tạo trợ lý.
     #   - embedder_kind: chọn đôi mắt giả ("synthetic") hay thật ("real"/"auto")
     #   - user_id: tên người dùng, để mỗi người có bộ nhớ riêng
-    def __init__(self, embedder_kind: str = "synthetic", user_id: str = "demo"):
+    def __init__(
+        self,
+        embedder_kind: str = "synthetic",
+        user_id: str = "demo",
+        memory_dir: str | Path | None = None,
+    ):
         # Đôi mắt: biến ảnh -> dấu vân tay số.
         self.embedder = get_embedder(embedder_kind)
         # Hai bộ nhớ TÁCH RIÊNG cho 2 loại đối tượng (modality):
@@ -66,8 +73,10 @@ class Assistant:
                 dim=512, user_id=user_id, modality="object", config=CPMConfig(dim=512)
             ),
         }
+        self.memory_store = LocalMemoryStore(memory_dir) if memory_dir is not None else None
         # Nạp ngưỡng quen-lạ đã hiệu chuẩn (nếu có) cho từng bộ nhớ.
         self._apply_calibrated_thresholds()
+        self.restore_memory()
 
     def _apply_calibrated_thresholds(self) -> None:
         """Nạp ngưỡng quen/lạ đã calibrate theo (embedder, modality); thiếu -> giữ mặc định.
@@ -96,6 +105,23 @@ class Assistant:
                     file=sys.stderr,
                 )
 
+    def restore_memory(self) -> None:
+        """Khôi phục CPM local nếu đã có, rồi áp lại ngưỡng hiện hành."""
+        if self.memory_store is None:
+            return
+        for modality in tuple(self.cpm):
+            loaded = self.memory_store.load(self.cpm[modality].user_id, modality)
+            if loaded is not None:
+                self.cpm[modality] = loaded
+        self._apply_calibrated_thresholds()
+
+    def persist_memory(self) -> None:
+        """Ghi cả face/object vào local store nếu persistence đang bật."""
+        if self.memory_store is None:
+            return
+        for memory in self.cpm.values():
+            self.memory_store.save(memory)
+
     # _embed: biến ảnh -> dấu vân tay số, chọn đúng cách theo loại đối tượng.
     #   - mặt (face) dùng model nhận mặt; đồ vật (object) dùng model nhận ảnh.
     def _embed(self, modality: str, image):
@@ -108,6 +134,7 @@ class Assistant:
     def teach(self, modality: str, image, label: str) -> str:
         # write() = dạy CPM: gắn dấu vân tay của ảnh với nhãn (tên).
         self.cpm[modality].write(self._embed(modality, image), label)
+        self.persist_memory()
         return f"Đã ghi nhớ ({modality}): {label}"
 
     # ask = HỎI: đưa ảnh, bộ nhớ so với những gì đã học rồi đoán là ai/cái gì.
@@ -127,6 +154,7 @@ class Assistant:
     def fix(self, modality: str, image, label: str) -> str:
         # correct() = sửa CPM: nhấn mạnh dấu vân tay này thuộc về nhãn đúng.
         self.cpm[modality].correct(self._embed(modality, image), label)
+        self.persist_memory()
         return f"Đã sửa ({modality}): đây là {label}"
 
     # stats: tóm tắt đang nhớ bao nhiêu nhãn cho mỗi loại (để xem nhanh).

@@ -4,24 +4,35 @@ pytest>=7
 matplotlib>=3.7      # biểu đồ thí nghiệm retention (WP5)
 gradio>=4            # UI demo (WP4)
 
-# === Perception + skills — model thật, chạy trên M4; bỏ comment khi cần ===
-# torch>=2.2                 # Apple Silicon: hỗ trợ MPS
-# insightface>=0.7.3         # ArcFace face embedding
-# onnxruntime>=1.17          # (Apple Silicon có thể dùng onnxruntime-silicon)
-# open_clip_torch>=2.24      # CLIP object embedding
-# opencv-python>=4.9,<5      # webcam / đọc ảnh (PIN <5: opencv 5.x kéo numpy>=2 -> xung đột facenet/torch)
-# pillow>=10
-# ultralytics>=8.3           # YOLO cho skill obstacle (vật cản)
+# === Perception + skills — model thật, chạy trên M4 ===
+# Các gói dưới đây là dependency bắt buộc của --embedder real, webcam và safety.
+insightface>=0.7.3          # ArcFace face embedding
+onnxruntime>=1.17           # runtime cho InsightFace trên Apple Silicon
+open_clip_torch>=2.24       # CLIP object embedding
+opencv-python>=4.9,<5       # webcam/BGR; pin <5 để không kéo NumPy 2.x
+pillow>=10                  # CLIP/OpenAI vision/đọc ảnh
+torch>=2.7,<2.8              # MPS; đồng bộ với Transformers v5 và torchvision 0.22
+torchvision>=0.22,<0.23      # cặp tương thích với PyTorch 2.7
+ultralytics>=8.3,<9          # YOLO11n cho safety monitor (Sprint 2)
+transformers>=5,<6           # Depth Anything V2 Small qua Hugging Face Hub 1.x
+safetensors>=0.4,<1          # checkpoint model an toàn, không dùng pickle
 # vietocr>=0.3               # OCR tiếng Việt (hoặc dùng VLM)
 # VLM cho skill scene/VQA: dùng SDK nhà cung cấp bạn chọn (Gemini/GPT-4o/Claude) hoặc VLM on-device
 
-# === Giọng nói (WP6, stretch) ===
-# (STT) whisper.cpp / faster-whisper / PhoWhisper
-# (TTS) piper-tts
+# === Giọng nói (Sprint 1) ===
+# faster-whisper chạy CPU int8 tốt trên Apple Silicon; model được tải lúc chạy voice_loop.
+faster-whisper>=1.1,<2
+sounddevice>=0.5,<1
+soundfile>=0.12,<1
+webrtcvad-wheels>=2.0.14,<3  # VAD native, có wheel Python 3.12/macOS arm64
+# gTTS là fallback online tùy chọn. Không cài mặc định vì bản hiện tại xung đột
+# với click của Hugging Face Hub 1.x; TTS mặc định trên M4 dùng `say` của macOS.
+# pip install gTTS  # chỉ cài trong environment tách riêng khi thực sự cần fallback này
+# Piper là lựa chọn offline tuỳ chọn, cần tải riêng model giọng vi_VN .onnx.
+# piper-tts>=1.2
 
 # === Optional Task 4 providers (OCR + VLM) ===
-# openai>=1.0            # GPT-4o / gpt-4o-mini cho CẢ scene/VQA + OCR (1 key, không cần cài EasyOCR)
-# pillow>=10             # encode ảnh -> base64 cho OpenAI vision (thường đã có sẵn theo torchvision)
+openai>=1,<3             # GPT-4o / gpt-4o-mini cho CẢ scene/VQA + OCR (1 key, không cần cài EasyOCR)
 # easyocr>=1.7           # OCR offline (thay thế nếu không muốn gọi cloud)
 # google-generativeai>=0.8   # Gemini free tier (thay thế OpenAI)
 

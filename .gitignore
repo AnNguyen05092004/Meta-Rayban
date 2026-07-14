@@ -1,11 +1,15 @@
 __pycache__/
 *.pyc
-.venv/
-.venv312/
+.venv*/
 venv/
 .pytest_cache/
 tmp_pytest*/
 .DS_Store
+.env
+.local_memory/
+.model_cache/
+.local_logs/
+.local_audio/
 
 # artifacts
 *.pkl
